@@ -168,39 +168,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/swagger-ui") ||
                 path.startsWith("/actuator");
     }
-
-    /**
-     * Limpia el contexto de seguridad en caso de error.
-     * Método utilitario para casos especiales.
-     */
-    private void clearSecurityContext() {
-        SecurityContextHolder.clearContext();
-        logger.debug("Contexto de seguridad limpiado");
-    }
-
-    /**
-     * Valida que el token no haya expirado y tiene el formato correcto.
-     * 
-     * @param token token JWT a validar
-     * @return true si el token es válido para uso, false en caso contrario
-     */
-    private boolean isTokenValidForUse(String token) {
-        if (token == null || token.trim().isEmpty()) {
-            return false;
-        }
-
-        // Verificar que no esté expirado
-        if (jwtUtil.isTokenExpired(token)) {
-            logger.warn("Token JWT expirado");
-            return false;
-        }
-
-        // Verificar tiempo restante (opcional: alertar si queda poco tiempo)
-        long remainingTime = jwtUtil.getTokenRemainingTime(token);
-        if (remainingTime < 300000) { // Menos de 5 minutos
-            logger.info("Token JWT expirará pronto ({}ms restantes)", remainingTime);
-        }
-
-        return true;
-    }
 }

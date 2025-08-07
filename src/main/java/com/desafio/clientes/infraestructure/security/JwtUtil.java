@@ -33,7 +33,8 @@ public class JwtUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
-    // Clave secreta para firmar tokens (en producción debe estar en variables de entorno)
+    // Clave secreta para firmar tokens (en producción debe estar en variables de
+    // entorno)
     @Value("${app.jwt.secret:defaultSecretKeyForDevelopmentOnlyDoNotUseInProduction}")
     private String jwtSecret;
 
@@ -58,9 +59,9 @@ public class JwtUtil {
      */
     public String generateJwtToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
-        
+
         Date expirationDate = new Date((new Date()).getTime() + jwtExpirationMs);
-        
+
         logger.debug("Generando token JWT para usuario: {}", userPrincipal.getUsername());
 
         return Jwts.builder()
@@ -75,12 +76,12 @@ public class JwtUtil {
      * Genera un token JWT con información personalizada.
      * 
      * @param username nombre de usuario
-     * @param roles roles del usuario
+     * @param roles    roles del usuario
      * @return token JWT generado
      */
     public String generateJwtToken(String username, String roles) {
         Date expirationDate = new Date((new Date()).getTime() + jwtExpirationMs);
-        
+
         logger.debug("Generando token JWT personalizado para usuario: {}", username);
 
         return Jwts.builder()
@@ -105,9 +106,9 @@ public class JwtUtil {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-            
+
             return claims.getSubject();
-            
+
         } catch (JwtException e) {
             logger.error("Error al extraer username del token JWT: {}", e.getMessage());
             return null;
@@ -127,9 +128,9 @@ public class JwtUtil {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-            
+
             return claims.get("roles", String.class);
-            
+
         } catch (JwtException e) {
             logger.error("Error al extraer roles del token JWT: {}", e.getMessage());
             return null;
@@ -149,9 +150,9 @@ public class JwtUtil {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-            
+
             return claims.getExpiration();
-            
+
         } catch (JwtException e) {
             logger.error("Error al extraer fecha de expiración del token JWT: {}", e.getMessage());
             return null;
@@ -165,15 +166,17 @@ public class JwtUtil {
      * @return true si el token es válido, false en caso contrario
      */
     public boolean validateJwtToken(String authToken) {
+        logger.debug("Validando token con secret: {}", jwtSecret);
+
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(authToken);
-            
+
             logger.debug("Token JWT validado exitosamente");
             return true;
-            
+
         } catch (MalformedJwtException e) {
             logger.error("Token JWT malformado: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
@@ -185,22 +188,8 @@ public class JwtUtil {
         } catch (JwtException e) {
             logger.error("Error de validación JWT: {}", e.getMessage());
         }
-        
-        return false;
-    }
 
-    /**
-     * Verifica si un token JWT ha expirado.
-     * 
-     * @param token token JWT
-     * @return true si el token ha expirado, false en caso contrario
-     */
-    public boolean isTokenExpired(String token) {
-        Date expirationDate = getExpirationDateFromJwtToken(token);
-        if (expirationDate == null) {
-            return true;
-        }
-        return expirationDate.before(new Date());
+        return false;
     }
 
     /**
@@ -214,44 +203,11 @@ public class JwtUtil {
         if (expirationDate == null) {
             return 0;
         }
-        
+
         long currentTime = new Date().getTime();
         long expirationTime = expirationDate.getTime();
-        
+
         return Math.max(0, expirationTime - currentTime);
-    }
-
-    /**
-     * Extrae el token JWT del header Authorization.
-     * 
-     * @param authorizationHeader header de autorización
-     * @return token JWT sin el prefijo "Bearer ", null si no es válido
-     */
-    public String extractTokenFromHeader(String authorizationHeader) {
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7);
-        }
-        return null;
-    }
-
-    /**
-     * Obtiene todos los claims del token JWT.
-     * 
-     * @param token token JWT
-     * @return claims del token
-     */
-    public Claims getAllClaimsFromToken(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-                    
-        } catch (JwtException e) {
-            logger.error("Error al extraer claims del token JWT: {}", e.getMessage());
-            return null;
-        }
     }
 
     /**

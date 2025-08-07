@@ -1,8 +1,8 @@
 package com.desafio.clientes.infraestructure.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -42,12 +42,14 @@ public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final Environment environment;
 
-    @Autowired
     public SecurityConfig(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
-                         JwtAuthenticationFilter jwtAuthenticationFilter) {
+                         JwtAuthenticationFilter jwtAuthenticationFilter,
+                         Environment environment) {
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.environment = environment;
     }
 
     /**
@@ -77,7 +79,7 @@ public class SecurityConfig {
             // Configurar autorización de endpoints
             .authorizeHttpRequests(authz -> authz
                 // Endpoints públicos
-                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/auth/**", "/error").permitAll()
                 .requestMatchers("/api/v1/clients/health").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()
                 .requestMatchers("/swagger-ui/**").permitAll()
@@ -151,5 +153,15 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
+    }
+
+    /**
+     * Determina si estamos en ambiente de desarrollo.
+     */
+    private boolean isDevelopment() {
+        String[] activeProfiles = environment.getActiveProfiles();
+        return Arrays.asList(activeProfiles).contains("development") || 
+               Arrays.asList(activeProfiles).contains("dev") ||
+               activeProfiles.length == 0; // default profile
     }
 }

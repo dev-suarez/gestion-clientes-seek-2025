@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.desafio.clientes.domain.entity.Client;
 import com.desafio.clientes.application.dto.ClientDTO;
+import com.desafio.clientes.application.exception.ClientException;
 import com.desafio.clientes.infraestructure.repository.ClientRepository;
 import com.desafio.clientes.application.mapper.ClientMapper;
 
@@ -85,8 +86,8 @@ public class ClientService {
             return savedClient;
 
         } catch (Exception e) {
-            logger.error("Error al crear cliente: {} {}", request.getFirstName(), request.getLastName(), e);
-            throw new RuntimeException("Error al crear el cliente: " + e.getMessage(), e);
+            logger.error("Error al crear cliente con nombre: {} {}", request.getFirstName(), request.getLastName(), e);
+            throw new ClientException("Error al crear el cliente", e);
         }
     }
 
@@ -101,13 +102,11 @@ public class ClientService {
     public Client getClientById(Long id) {
         logger.info("Buscando cliente con ID: {}", id);
 
-        Client client = clientRepository.findById(id)
+        return clientRepository.findById(id)
                 .orElseThrow(() -> {
                     logger.warn("Cliente no encontrado con ID: {}", id);
                     return new IllegalArgumentException("Cliente no encontrado con ID: " + id);
                 });
-
-        return client;
     }
 
     /**
@@ -152,7 +151,7 @@ public class ClientService {
 
         } catch (Exception e) {
             logger.error("Error al actualizar cliente con ID: {}", id, e);
-            throw new RuntimeException("Error al actualizar el cliente: " + e.getMessage(), e);
+            throw new ClientException("Error al actualizar el cliente.", e);
         }
     }
 
@@ -176,7 +175,7 @@ public class ClientService {
 
         } catch (Exception e) {
             logger.error("Error al eliminar cliente con ID: {}", id, e);
-            throw new RuntimeException("Error al eliminar el cliente: " + e.getMessage(), e);
+            throw new ClientException("Error al eliminar el cliente", e);
         }
     }
 
@@ -216,14 +215,14 @@ public class ClientService {
                     youngestAge,
                     oldestAge);
 
-            logger.info("Métricas calculadas - Total: {}, Promedio edad: {:.2f}, Desv. estándar: {:.2f}",
-                    totalClients, averageAge, standardDeviation);
+            logger.info("Métricas calculadas - Total: {}, Promedio edad: {}, Desv. estándar: {}", totalClients,
+                    averageAge, standardDeviation);
 
             return metrics;
 
         } catch (Exception e) {
             logger.error("Error al calcular métricas de clientes", e);
-            throw new RuntimeException("Error al calcular las métricas: " + e.getMessage(), e);
+            throw new ClientException("Error al calcular las métricas", e);
         }
     }
 

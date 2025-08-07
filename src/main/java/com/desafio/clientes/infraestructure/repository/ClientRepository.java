@@ -33,14 +33,6 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     List<Client> findByFirstNameContainingIgnoreCase(String firstName);
 
     /**
-     * Busca clientes por apellido (last_name).
-     * 
-     * @param lastName apellido a buscar
-     * @return lista de clientes con ese apellido
-     */
-    List<Client> findByLastNameContainingIgnoreCase(String lastName);
-
-    /**
      * Busca un cliente por nombre y apellido exactos.
      * Útil para evitar duplicados.
      * 
@@ -87,18 +79,4 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
      */
     @Query("SELECT c FROM Client c WHERE c.age BETWEEN :minAge AND :maxAge ORDER BY c.age")
     List<Client> findByAgeRange(Integer minAge, Integer maxAge);
-
-    /**
-     * Obtiene los clientes más jóvenes (top N).
-     * 
-     * @return lista de clientes ordenados por edad ascendente
-     */
-    List<Client> findTop10ByOrderByAgeAsc();
-
-    /**
-     * Obtiene los clientes de mayor edad (top N).
-     * 
-     * @return lista de clientes ordenados por edad descendente
-     */
-    List<Client> findTop10ByOrderByAgeDesc();
 }
